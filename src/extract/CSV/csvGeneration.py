@@ -2,7 +2,7 @@ from faker import Faker
 import random as rdm
 
 csvRute= './src/extract/CSV/data/sales_data.csv'
-headers = 'Date, Store ID, Product ID, Quantity Sold, Revenue'
+headers = 'Date, Store_ID, Product_ID, Quantity_Sold, Revenue \n'
 contenido= ''
 
 fk= Faker()
