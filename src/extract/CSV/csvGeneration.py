@@ -7,7 +7,7 @@ contenido= ''
 
 fk= Faker()
 
-fileCSV = open(csvRute, 'a+')
+fileCSV = open(csvRute, 'w+')
 fileCSV.write(headers)
 
 def date_gen():
@@ -36,7 +36,7 @@ def store_id_gen():
 
 def product_id_gen():
     probabilidad =rdm.random()
-    product_id = fk.bothify(text='???-###')
+    product_id = fk.bothify(text='???-###').upper()
     if 0 <= probabilidad < 0.05:
         product_id = None
     if 0.05 <= probabilidad < 0.075:
