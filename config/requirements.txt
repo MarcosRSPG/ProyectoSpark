@@ -1,1 +1,3 @@
-python-dotenv
+dotenv
+faker
+psycopg2
