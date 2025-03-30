@@ -8,7 +8,7 @@ services:
       - "9090:8080" # Web UI for master
       - "7077:7077" # Spark master port
     volumes:
-      - ./src:/opt/spark-apps
+      - ../src:/opt/spark-apps
       - ./data:/opt/spark-data
       - spark-logs:/opt/spark/logs
       - spark-history:/opt/spark/history
@@ -34,7 +34,7 @@ services:
     depends_on:
       - spark-master
     volumes:
-      - ./src:/opt/spark-apps
+      - ../src:/opt/spark-apps
       - ./data:/opt/spark-data
       - spark-logs:/opt/spark/logs
       - spark-history:/opt/spark/history
@@ -65,7 +65,7 @@ services:
     depends_on:
       - spark-master
     volumes:
-      - ./src:/opt/spark-apps
+      - ../src:/opt/spark-apps
       - ./data:/opt/spark-data
       - spark-logs:/opt/spark/logs
       - spark-history:/opt/spark/history
