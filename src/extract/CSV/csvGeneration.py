@@ -10,7 +10,7 @@ fk= Faker()
 fileCSV = open(csvRute, 'w+')
 fileCSV.write(headers)
 
-def dataType(type):
+def dataGenerator(type):
     probability =rdm.random()
     match(type):
         case 'date': data = fk.date_this_year()
@@ -27,7 +27,7 @@ def dataType(type):
     return data
 
 for i in range(1, 5001):
-    content += f'{dataType('date')}, {dataType('store')}, {dataType('product')}, {dataType('quantity')}, {dataType('revenue')} \n'
+    content += f'{dataGenerator('date')}, {dataGenerator('store')}, {dataGenerator('product')}, {dataGenerator('quantity')}, {dataGenerator('revenue')} \n'
 
 fileCSV.write(content)
 

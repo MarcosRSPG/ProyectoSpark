@@ -8,7 +8,7 @@ load_dotenv('./config/.env')
 
 fk = Faker()
 
-def dataType(type):
+def dataGenerator(type):
     probability =rdm.random()
     match(type):
         case 'store': data = fk.company()
@@ -38,7 +38,7 @@ try:
 
     with conn.cursor() as cur:
         for x in range(5000):
-            insertString=f'INSERT INTO Stores  (store_name,location,demographics) VALUES (\'{dataType('store')}\',\'{dataType('location')}\',\'{dataType('demographics')}\')'
+            insertString=f'INSERT INTO Stores  (store_name,location,demographics) VALUES (\'{dataGenerator('store')}\',\'{dataGenerator('location')}\',\'{dataGenerator('demographics')}\')'
             cur.execute(insertString)
         conn.commit()
 

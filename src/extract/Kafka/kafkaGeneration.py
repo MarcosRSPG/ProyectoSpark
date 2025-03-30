@@ -10,7 +10,7 @@ fk = Faker()
 producer = KafkaProducer(bootstrap_servers=['localhost:9092'],
                          value_serializer=lambda x: dumps(x).encode('utf-8'))
 
-def dataType(type):
+def dataGenerator(type):
     probability =rdm.random()
     match(type):
         case 'store': data = rdm.randint(1, 100)
@@ -28,10 +28,10 @@ def dataType(type):
 for i in range(1, 20):
     message = {
         "timestamp": int(datetime.now().timestamp() * 1000),
-        "store_id": dataType('store'),
-        "product_id": dataType('product'),  
-        "quantity_sold": dataType('quantity'),  
-        "revenue": dataType('revenue')
+        "store_id": dataGenerator('store'),
+        "product_id": dataGenerator('product'),  
+        "quantity_sold": dataGenerator('quantity'),  
+        "revenue": dataGenerator('revenue')
     }
     producer.send('sales_stream', value=message)
     sleep(1)
