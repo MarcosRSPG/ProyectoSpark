@@ -1,7 +1,7 @@
 from faker import Faker
 import random as rdm
 
-csvRute= './src/extract/CSV/data/sales_data.csv'
+csvRute= 'docker/data/sales_data.csv'
 headers = 'Date, Store_ID, Product_ID, Quantity_Sold, Revenue \n'
 content= ''
 
