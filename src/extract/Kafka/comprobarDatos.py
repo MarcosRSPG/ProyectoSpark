@@ -15,7 +15,7 @@ spark = SparkSession.builder \
         .master("spark://spark-master:7077") \
         .getOrCreate()
 
-df = spark.read.parquet("s3a://bucket-bda/sales/part-00000-11fea383-596a-4184-945f-5a389b82efc0-c000.snappy.parquet")
+df = spark.read.parquet("s3a://data-lake/sales/part-00000-11fea383-596a-4184-945f-5a389b82efc0-c000.snappy.parquet")
 
 df.show()
 
