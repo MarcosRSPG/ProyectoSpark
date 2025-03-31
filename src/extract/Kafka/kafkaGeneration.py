@@ -11,7 +11,7 @@ producer = KafkaProducer(bootstrap_servers=['localhost:9092'],
                          value_serializer=lambda x: dumps(x).encode('utf-8'))
 
 def dataGenerator(type):
-    probability =rdm.random()
+    probability = rdm.random()
     match(type):
         case 'store': data = rdm.randint(1, 100)
         case 'product': data = fk.bothify(text='???-###').upper()
@@ -33,5 +33,7 @@ for i in range(1, 20):
         "quantity_sold": dataGenerator('quantity'),  
         "revenue": dataGenerator('revenue')
     }
+    print(i)
     producer.send('sales_stream', value=message)
     sleep(1)
+
