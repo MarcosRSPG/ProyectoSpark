@@ -19,5 +19,3 @@ df = spark.read.parquet("s3a://data-lake/output/part-00000-d0f1b397-a34c-4b0c-b1
 
 df.show()
 
-df.printSchema()
-
