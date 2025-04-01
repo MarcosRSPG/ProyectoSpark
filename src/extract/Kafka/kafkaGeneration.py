@@ -25,12 +25,12 @@ def dataGenerator(type):
         data = f'{type}_error'.upper()
     return data
 
-for i in range(1, 20):
+for i in range(1, 800):
     message = {
         "timestamp": int(datetime.now().timestamp() * 1000),
         "store_id": dataGenerator('store'),
-        "product_id": dataGenerator('product'),  
-        "quantity_sold": dataGenerator('quantity'),  
+        "product_id": dataGenerator('product'),
+        "quantity_sold": dataGenerator('quantity'),
         "revenue": dataGenerator('revenue')
     }
     print(i)

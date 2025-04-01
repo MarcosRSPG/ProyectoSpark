@@ -31,7 +31,7 @@ try:
     .option('fs.s3a.committer.staging.conflict-mode', 'replace') \
     .option("fs.s3a.fast.upload.buffer", "bytebuffer")\
     .mode('overwrite') \
-    .csv(path='s3a://data-lake/output', sep=',')
+    .csv(path='s3a://data-lake/csv', sep=',')
     
     spark.stop()
     

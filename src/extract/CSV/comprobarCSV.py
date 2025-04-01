@@ -1,3 +1,4 @@
+import boto3
 from pyspark.sql import SparkSession
 
 spark = SparkSession.builder \
@@ -15,7 +16,21 @@ spark = SparkSession.builder \
         .master("spark://spark-master:7077") \
         .getOrCreate()
 
-df = spark.read.parquet("s3a://data-lake/output/part-00000-d0f1b397-a34c-4b0c-b1d9-c838589cfde7-c000.csv")
+# Configure boto3 to use LocalStack endpoint
+s3 = boto3.client(
+    's3',
+    endpoint_url='http://localhost:4566',
+    aws_access_key_id='test',  # use the default access key
+    aws_secret_access_key='test',  # use the default secret key
+)
 
-df.show()
+# Define the bucket name and object key
+bucket_name = 'data-lake'
+object_key = 'csv/part-00000-4c9fcac9-aabe-4a23-8fb1-be1922e3ec56-c000.csv'
+
+# Download the file from S3 bucket
+response = s3.get_object(Bucket=bucket_name, Key=object_key)
+data = response['Body'].read()
+
+print(f"File '{object_key}' downloaded from s3://{bucket_name}/ whose values is {data}")
 
