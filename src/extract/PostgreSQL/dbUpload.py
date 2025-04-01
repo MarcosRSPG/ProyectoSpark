@@ -6,18 +6,8 @@ aws_secret_access_key='test'
 def read_from_postgres():
     spark = SparkSession.builder \
         .appName("ReadFromPostgres") \
-        .config("spark.jars","postgresql-42.7.3.jar") \
-        .config("spark.hadoop.fs.s3a.endpoint", "http://localstack:4566") \
-        .config("spark.hadoop.fs.s3a.access.key", aws_access_key_id) \
-        .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key) \
-        .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262") \
-        .config("spark.sql.shuffle.partitions", "4") \
-        .config("spark.jars.packages","org.apache.spark:spark-hadoop-cloud_2.13:3.5.1,software.amazon.awssdk:s3:2.25.11") \
-        .config("spark.hadoop.fs.s3a.path.style.access", "true") \
-        .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-        .config("spark.driver.extraClassPath", "/opt/spark-apps/extract/PostgreSQL/postgresql-42.7.3.jar,/opt/spark/jars/s3-2.25.11.jar") \
-        .config("spark.executor.extraClassPath", "/opt/spark/jars/s3-2.25.11.jar") \
-        .master("spark://spark-master:7077") \
+        .config("spark.jars", "postgresql-42.7.3.jar") \
+        .master("local[*]") \
         .getOrCreate()
 
     # Define connection properties
@@ -28,22 +18,12 @@ def read_from_postgres():
         "driver": "org.postgresql.Driver"
     }
 
-    table_name = "stores"
+    table_name = "Stores"
     try:
         # Read data from PostgreSQL table into a DataFrame
         df = spark.read.jdbc(url=jdbc_url, table=table_name, properties=connection_properties)
 
-        df.show(5)
-
-        df.write \
-        .format("console") \
-        .mode("overwrite") \
-        .option("truncate", False) \
-        .save()
-
-        df.write \
-        .mode("overwrite") \
-        .csv("s3a://data-lake/postgres/", header=True)
+        df.write.mode("overwrite").option("header", True).csv("../Spark/data/stores.csv")
 
     except Exception as e:
         print("Error reading data from PostgreSQL:", e)
