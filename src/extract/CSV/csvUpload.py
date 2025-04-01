@@ -23,8 +23,8 @@ spark = SparkSession.builder \
 #Upload file to S3
 try:
     #Read file from local directory
-    df3 = spark.read.option("delimiter", ",").option("header", True).csv("/opt/spark-data/sales_data.csv")
-    
+    df3 = spark.read.option('header', True).option("delimiter", ",").csv("/opt/spark-data/sales_data.csv")
+    print(df3.columns)
     df3 \
     .write \
     .option('fs.s3a.committer.name', 'partitioned') \
