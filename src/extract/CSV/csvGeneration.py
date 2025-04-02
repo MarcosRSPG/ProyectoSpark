@@ -26,7 +26,7 @@ def dataGenerator(type):
         data = f'{type}_error'.upper()
     return data
 
-for i in range(1, 5001):
+for i in range(1, 5):
     content += f'{dataGenerator('date')}, {dataGenerator('store')}, {dataGenerator('product')}, {dataGenerator('quantity')}, {dataGenerator('revenue')} \n'
 
 fileCSV.write(content)

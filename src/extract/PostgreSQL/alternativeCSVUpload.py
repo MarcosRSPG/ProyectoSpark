@@ -27,6 +27,7 @@ try:
     
     df3 \
     .write \
+    .option('header', 'true') \
     .option('fs.s3a.committer.name', 'partitioned') \
     .option('fs.s3a.committer.staging.conflict-mode', 'replace') \
     .option("fs.s3a.fast.upload.buffer", "bytebuffer")\

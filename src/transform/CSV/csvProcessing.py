@@ -4,11 +4,11 @@ from pyspark.sql.functions import col, when, mean, lit, current_timestamp
 aws_access_key_id = 'test'
 aws_secret_access_key = 'test'
 
-date= '_c0'
-stores= '_c1'
-products= '_c2'
-quantity= '_c3'
-revenue= '_c4'
+date= 'date'
+stores= 'store_ID'
+products= 'product_ID'
+quantity= 'quantity_Sold'
+revenue= 'revenue'
 tratado= 'Tratado'
 fecha_insercion= 'Fecha Insercion'
 
@@ -24,7 +24,7 @@ spark = SparkSession.builder \
     .master("spark://spark-master:7077") \
     .getOrCreate()
 
-bucket_path = "s3a://data-lake/csv/part-00000-70dd3bbb-c1aa-441a-9449-473a8558142d-c000.csv"
+bucket_path = "s3a://data-lake/csv/part-00000-75c2e779-eb2c-450b-b65d-d43e2b05430c-c000.csv"
 df = spark.read.option('header', 'true').option("delimiter", ",").csv(bucket_path)
 
 invalid_values = ["", "STORE_ERROR", "PRODUCT_ERROR", "QUANTITY_ERROR", "REVENUE_ERROR", "DATE_ERROR"]
@@ -34,7 +34,7 @@ df_count = df_filtered.groupBy(date).count()
 most_frequent_datetime = df_count.orderBy(col('count').desc()).first()
 most_frequent_datetime_value = most_frequent_datetime[date]
 
-quantity_mean = df.select(mean(col(quantity))).collect()[0][0]
+quantity_mean = int(df.select(mean(col(quantity))).collect()[0][0])
 revenue_mean = df.select(mean(col(revenue))).collect()[0][0]
 
 df = df.withColumn(tratado, when(df[revenue].isin(invalid_values) | df[revenue].isNull() | (df[revenue] == 'None') | df[quantity].isin(invalid_values) | df[quantity].isNull() | (df[quantity] == 'None') | df[date].isin(invalid_values) | df[date].isNull() | (df[date] == 'None'), True).otherwise(False))
@@ -47,11 +47,21 @@ df = df.withColumn(revenue, when(df[revenue].isin(invalid_values) | df[revenue].
 
 df = df.withColumn(fecha_insercion, current_timestamp())
 
-df.show(200)
+df = df.dropDuplicates()
+
+df = df.withColumn(date, col(date).cast("timestamp")) \
+       .withColumn(stores, col(stores).cast("int")) \
+       .withColumn(products, col(products).cast("string")) \
+       .withColumn(quantity, col(quantity).cast("int")) \
+       .withColumn(revenue, col(revenue).cast("double"))
+
+df.show()
+df.printSchema()
 
 df \
     .write \
     .format('csv') \
+    .option('header', 'true') \
     .option('fs.s3a.committer.name', 'partitioned') \
     .option('fs.s3a.committer.staging.conflict-mode', 'replace') \
     .option("fs.s3a.fast.upload.buffer", "bytebuffer")\
