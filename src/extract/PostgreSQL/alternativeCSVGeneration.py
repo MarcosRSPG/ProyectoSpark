@@ -14,7 +14,7 @@ db_config = {
 table_name = "Stores"
 
 # Ruta local donde guardar el CSV
-csv_path = "C:/Users/34652/Documents/ProyectoSpark/Spark/data/stores.csv"  # Cambia la ruta si es necesario
+csv_path = 'C:/Users/Vespertino/Desktop/ProyectoSpark/Spark/data/stores.csv'  # Cambia la ruta si es necesario
 
 try:
     # Conectar a PostgreSQL

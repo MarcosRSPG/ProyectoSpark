@@ -5,6 +5,31 @@ from pyspark.sql.types import StructType, StringType, IntegerType, DoubleType
 aws_access_key_id='test'
 aws_secret_access_key='test'
 
+
+def process_batch(batch_df, batch_id):
+    print(f"Processing batch {batch_id} with {batch_df.count()} records.")
+    if batch_df.count() > 0:
+        print(f"Batch {batch_id} has data.")
+        batch_df.show()  # Log the batch data
+        batch_df.persist()
+        try:
+            # Write the DataFrame to S3
+           batch_df \
+            .write \
+            .option('fs.s3a.committer.name', 'partitioned') \
+            .option('fs.s3a.committer.staging.conflict-mode', 'replace') \
+            .option("fs.s3a.fast.upload.buffer", "bytebuffer")\
+            .mode('overwrite') \
+            .json(path='s3a://data-lake/sales')
+            
+        except Exception as e:
+            print(f"Error writing batch {batch_id} to S3: {str(e)}")
+        finally:
+            batch_df.unpersist()
+            print(f"Batch {batch_id} processed and unpersisted.")
+    else:
+        print(f"Batch {batch_id} is empty.")
+
 spark = SparkSession.builder \
     .appName("Streaming from Kafka") \
     .config("spark.streaming.stopGracefullyOnShutdown", True) \
@@ -55,11 +80,11 @@ query = df \
 query = df \
     .writeStream \
     .outputMode("append") \
-    .format("csv") \
+    .format("json") \
     .option("path", "s3a://data-lake/sales") \
     .option("checkpointLocation", "s3a://data-lake/checkopoint")\
+    .foreachBatch(process_batch) \
     .option("header", "true")\
     .start()
 
-# Wait for the termination of the query
 query.awaitTermination()

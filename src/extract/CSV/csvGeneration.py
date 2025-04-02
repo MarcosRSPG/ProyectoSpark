@@ -2,7 +2,7 @@ from faker import Faker
 import random as rdm
 
 csvRute= 'Spark/data/sales_data.csv'
-headers = 'Date, Store_ID, Product_ID, Quantity_Sold, Revenue \n'
+headers = 'date, store_ID, product_ID, quantity_Sold, revenue \n'
 content= ''
 
 fk= Faker()

@@ -1,94 +1,59 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, count, desc, lit, current_timestamp, avg
-import os
-import re
+from pyspark.sql.functions import col, when, mean, lit, current_timestamp
+
+aws_access_key_id = 'test'
+aws_secret_access_key = 'test'
+
+date= '_c0'
+stores= '_c1'
+products= '_c2'
+quantity= '_c3'
+revenue= '_c4'
+tratado= 'Tratado'
+fecha_insercion= 'Fecha Insercion'
 
 spark = SparkSession.builder \
-    .appName("CSVProcessing") \
+    .appName("csvTransformData") \
     .config("spark.hadoop.fs.s3a.endpoint", "http://localstack:4566") \
-    .config("spark.hadoop.fs.s3a.access.key", "test") \
-    .config("spark.hadoop.fs.s3a.secret.key", "test") \
+    .config("spark.hadoop.fs.s3a.access.key", aws_access_key_id) \
+    .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key) \
+    .config("spark.sql.shuffle.partitions", "4") \
+    .config("spark.jars.packages","org.apache.hadoop:hadoop-aws:3.3.4") \
     .config("spark.hadoop.fs.s3a.path.style.access", "true") \
     .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+    .master("spark://spark-master:7077") \
     .getOrCreate()
 
-s3_input_path = "s3a://data-lake/csv/part-00000-5a744043-eaac-4b02-b8d7-01c613fa0f12-c000.csv"
-s3_output_path = "s3a://data-lake/csv_procesed"
+bucket_path = "s3a://data-lake/csv/part-00000-70dd3bbb-c1aa-441a-9449-473a8558142d-c000.csv"
+df = spark.read.option('header', 'true').option("delimiter", ",").csv(bucket_path)
 
-df = spark.read.option('header', False).option("delimiter", ",").csv(s3_input_path)
+invalid_values = ["", "STORE_ERROR", "PRODUCT_ERROR", "QUANTITY_ERROR", "REVENUE_ERROR", "DATE_ERROR"]
 
-df.show(5)
+df_filtered = df.filter(~(df[date].isin(invalid_values) | df[date].isNull() | (df[date] == 'None')))
+df_count = df_filtered.groupBy(date).count()
+most_frequent_datetime = df_count.orderBy(col('count').desc()).first()
+most_frequent_datetime_value = most_frequent_datetime[date]
 
-invalid_pattern = r"^\w+_ERROR$"
+quantity_mean = df.select(mean(col(quantity))).collect()[0][0]
+revenue_mean = df.select(mean(col(revenue))).collect()[0][0]
 
-df = df.withColumn("_c3", col("_c3").cast("double"))
-df = df.withColumn("_c4", col("_c4").cast("double"))
+df = df.withColumn(tratado, when(df[revenue].isin(invalid_values) | df[revenue].isNull() | (df[revenue] == 'None') | df[quantity].isin(invalid_values) | df[quantity].isNull() | (df[quantity] == 'None') | df[date].isin(invalid_values) | df[date].isNull() | (df[date] == 'None'), True).otherwise(False))
 
-def filter_invalid_values(df, columns, invalid_pattern):
-    filtered_rdd = df.rdd.filter(lambda row: all(not (
-        row[col_index] is None or 
-        str(row[col_index]) == "" or 
-        str(row[col_index]) in ["None", "NULL"] or 
-        re.match(invalid_pattern, str(row[col_index]))
-    ) for col_index in range(len(row)) if df.columns[col_index] in columns))
-    
-    return filtered_rdd.toDF(df.schema)  # Mantiene todas las columnas originales y su esquema
+df = df.withColumn(date, when(df[date].isin(invalid_values) | df[date].isNull() | (df[date] == 'None'), most_frequent_datetime_value).otherwise(df[date]))
+df = df.filter(~(df[stores].isin(invalid_values) | df[stores].isNull() | (df[stores] == 'None')))
+df = df.filter(~(df[products].isin(invalid_values) | df[products].isNull() | (df[products] == 'None')))
+df = df.withColumn(quantity, when(df[quantity].isin(invalid_values) | df[quantity].isNull() | (df[quantity] == 'None'), quantity_mean).otherwise(df[quantity]))
+df = df.withColumn(revenue, when(df[revenue].isin(invalid_values) | df[revenue].isNull() | (df[revenue] == 'None'), revenue_mean).otherwise(df[revenue]))
 
-def replace_with_mean(df, columns, invalid_pattern):
-    means = {}
-    for col_name in columns:
-        numeric_df = df.filter(col(col_name).rlike("^[0-9]+$"))
-        mean_value = numeric_df.select(avg(col(col_name)).alias("mean")).collect()[0]["mean"]
-        means[col_name] = float(mean_value) if mean_value is not None else 0
-
-    df = df.rdd.map(lambda row: [
-        means[col_name] if (df.schema[i].name in columns and (
-            row[i] is None or 
-            str(row[i]) == "" or 
-            str(row[i]) in ["None", "NULL"] or 
-            re.match(invalid_pattern, str(row[i]))
-        )) else row[i]
-        for i in range(len(row))
-    ]).toDF(df.schema)  # Mantiene todas las columnas originales
-    
-    return df
-
-def replace_with_mode(df, columns, invalid_pattern):
-    modes = {}
-    for col_name in columns:
-        mode_row = (df.filter(~col(col_name).rlike(invalid_pattern))
-                    .groupBy(col_name)
-                    .agg(count("*").alias("count"))
-                    .orderBy(desc("count"))
-                    .limit(1)
-                    .collect())
-        
-        modes[col_name] = mode_row[0][0] if mode_row else "0"
-
-    df = df.rdd.map(lambda row: [
-        modes[col_name] if (df.schema[i].name in columns and (
-            row[i] is None or 
-            re.match(invalid_pattern, str(row[i]))
-        )) else row[i]
-        for i in range(len(row))
-    ]).toDF(df.schema)  # Mantiene todas las columnas originales
-    
-    return df
-
-# Aplicar transformaciones
-df = filter_invalid_values(df, ['_c1', '_c2'], invalid_pattern)
-df = replace_with_mean(df, ['_c3', '_c4'], invalid_pattern)
-df = replace_with_mode(df, ['_c0'], invalid_pattern)
-
-
-df = df.withColumn("Tratado", lit(True))
-
-
-df = df.withColumn("Fecha_Insercion_UTC", current_timestamp())
+df = df.withColumn(fecha_insercion, current_timestamp())
 
 df.show(200)
 
-df.write.mode("overwrite").option("header", True).csv(s3_output_path)
-print("Archivo tratado guardado en S3.")
-
-spark.stop()
+df \
+    .write \
+    .format('csv') \
+    .option('fs.s3a.committer.name', 'partitioned') \
+    .option('fs.s3a.committer.staging.conflict-mode', 'replace') \
+    .option("fs.s3a.fast.upload.buffer", "bytebuffer")\
+    .mode('overwrite') \
+    .csv(path='s3a://data-lake/csv_processed', sep=',')
