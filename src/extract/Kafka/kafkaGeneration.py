@@ -36,4 +36,3 @@ for i in range(1, 800):
     print(i)
     producer.send('sales_stream', value=message)
     sleep(1)
-
