@@ -87,6 +87,5 @@ except Exception as e:
     print("Error reading data from Kafka:", e)    
 finally:
     spark.stop()
-df = spark.read.json("s3a://data-lake/sales/")
-df.coalesce(1).write.mode("overwrite").json("s3a://data-lake/sales_compacted")
+
 

@@ -23,7 +23,7 @@ spark = SparkSession.builder \
     .master("spark://spark-master:7077") \
     .getOrCreate()
 
-bucket_path = "s3a://data-lake/postgres/part-00000-0dd54003-6b67-4166-858b-b98687bcfb78-c000.csv"
+bucket_path = "s3a://data-lake/postgres/part-00000-abea762c-c93a-4761-80c8-49c8fb593e8c-c000.csv"
 df = spark.read.option('header', 'true').option("delimiter", ",").csv(bucket_path)
 
 invalid_values = ["", "STORE_ERROR", "LOCATION_ERROR", "DEMOGRAPHICS_ERROR"]

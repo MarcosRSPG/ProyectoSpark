@@ -24,7 +24,7 @@ spark = SparkSession.builder \
     .master("spark://spark-master:7077") \
     .getOrCreate()
 
-bucket_path = "s3a://data-lake/csv/part-00000-75c2e779-eb2c-450b-b65d-d43e2b05430c-c000.csv"
+bucket_path = "s3a://data-lake/csv/part-00000-6296fe06-9a9c-48b5-a8be-1eb012a9dd72-c000.csv"
 df = spark.read.option('header', 'true').option("delimiter", ",").csv(bucket_path)
 
 invalid_values = ["", "STORE_ERROR", "PRODUCT_ERROR", "QUANTITY_ERROR", "REVENUE_ERROR", "DATE_ERROR"]

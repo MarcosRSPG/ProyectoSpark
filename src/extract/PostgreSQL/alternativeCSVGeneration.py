@@ -1,13 +1,16 @@
 import psycopg2
 import pandas as pd
+from dotenv import load_dotenv
+import os
 
+load_dotenv('./config/.env')
 # Configuración de la conexión a PostgreSQL
 db_config = {
-    "host": "localhost",  # O la IP de tu servidor PostgreSQL
-    "database": "retail_db",
-    "user": "postgres",
-    "password": "casa1234",
-    "port": "5432"
+        'host': os.getenv('HOST'),
+        'database': os.getenv('DATABASE'),
+        'user': os.getenv('USER'),
+        'password': os.getenv('PASSWORD'),
+        'port': os.getenv('PORT')
 }
 
 # Nombre de la tabla

@@ -7,7 +7,7 @@ content= ''
 
 fk= Faker()
 
-fileCSV = open(csvRute, 'w+')
+fileCSV = open(csvRute, 'w')
 fileCSV.write(headers)
 
 def dataGenerator(type):
@@ -26,7 +26,7 @@ def dataGenerator(type):
         data = f'{type}_error'.upper()
     return data
 
-for i in range(1, 5):
+for i in range(1, 5001):
     content += f'{dataGenerator('date')}, {dataGenerator('store')}, {dataGenerator('product')}, {dataGenerator('quantity')}, {dataGenerator('revenue')} \n'
 
 fileCSV.write(content)
