@@ -21,7 +21,7 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 # Leer el archivo CSV desde el bucket
-bucket_path = "s3a://data-lake/csv/part-00000-75c2e779-eb2c-450b-b65d-d43e2b05430c-c000.csv"
+bucket_path = "s3a://data-lake/csv/*.csv"
 df = spark.read.option('header', 'true').option("delimiter", ",").csv(bucket_path)
 
 

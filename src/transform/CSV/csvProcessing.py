@@ -14,13 +14,13 @@ fecha_insercion= 'Fecha Insercion'
 
 spark = SparkSession.builder \
     .appName("csvTransformData") \
+    .config("spark.driver.extraClassPath", "/opt/spark-apps/transform/CSV/postgresql-42.7.3.jar:/opt/spark/jars/*") \
+    .config("spark.executor.extraClassPath", "/opt/spark-apps/transform/CSV/postgresql-42.7.3.jar:/opt/spark/jars/*") \
     .config("spark.hadoop.fs.s3a.endpoint", "http://localstack:4566") \
-    .config("spark.hadoop.fs.s3a.access.key", aws_access_key_id) \
-    .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key) \
-    .config("spark.sql.shuffle.partitions", "4") \
-    .config("spark.jars.packages","org.apache.hadoop:hadoop-aws:3.3.4") \
+    .config("spark.hadoop.fs.s3a.access.key", "test") \
+    .config("spark.hadoop.fs.s3a.secret.key", "test") \
     .config("spark.hadoop.fs.s3a.path.style.access", "true") \
-    .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+    .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false") \
     .master("spark://spark-master:7077") \
     .getOrCreate()
 
@@ -46,12 +46,7 @@ df = df.withColumn(quantity, when(df[quantity].isin(invalid_values) | df[quantit
 df = df.withColumn(revenue, when(df[revenue].isin(invalid_values) | df[revenue].isNull() | (df[revenue] == 'None'), revenue_mean).otherwise(df[revenue]))
 
 df = df.withColumn(fecha_insercion, current_timestamp())
-
-df.show()
-
 df = df.dropDuplicates()
-
-df.show()
 
 # Calcular Q1 y Q3 para el rango intercuartil (IQR) sin approxQuantile
 q1_quantity, q3_quantity = df.selectExpr(
@@ -77,14 +72,8 @@ df = df.filter((col(revenue) >= lower_bound_revenue) & (col(revenue) <= upper_bo
 df = df.withColumn(date, col(date).cast("timestamp")) \
        .withColumn(stores, col(stores).cast("int")) \
        .withColumn(products, col(products).cast("string")) \
-       .withColumn(quantity, col(quantity).cast("int")) \
-       .withColumn(revenue, col(revenue).cast("double"))
-
-df = df.withColumn(date, col(date).cast("timestamp")) \
-       .withColumn(stores, col(stores).cast("int")) \
-       .withColumn(products, col(products).cast("string")) \
-       .withColumn(quantity, col(quantity).cast("int")) \
-       .withColumn(revenue, col(revenue).cast("double"))
+       .withColumn(quantity, col(quantity).cast("float")) \
+       .withColumn(revenue, col(revenue).cast("float"))
 
 df.show()
 df.printSchema()
@@ -93,7 +82,8 @@ df \
     .write \
     .format("jdbc") \
     .option("url", "jdbc:postgresql://postgres-db:5432/processed_data") \
-    .option("dbtable", "schema.csv") \
+    .option("dbtable", "public.csv_data") \
     .option("user", "postgres") \
     .option("password", "casa1234") \
+    .option("driver", "org.postgresql.Driver") \
     .save()

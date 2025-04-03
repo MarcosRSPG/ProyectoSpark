@@ -64,10 +64,10 @@ df.printSchema()
 
 df \
     .write \
-    .format('csv') \
-    .option('header', 'true') \
-    .option('fs.s3a.committer.name', 'partitioned') \
-    .option('fs.s3a.committer.staging.conflict-mode', 'replace') \
-    .option("fs.s3a.fast.upload.buffer", "bytebuffer")\
-    .mode('overwrite') \
-    .csv(path='s3a://data-lake/db_processed', sep=',')
+    .format("jdbc") \
+    .option("url", "jdbc:postgresql://postgres-db:5432/processed_data") \
+    .option("dbtable", "public.postgre_data") \
+    .option("user", "postgres") \
+    .option("password", "casa1234") \
+    .option("driver", "org.postgresql.Driver") \
+    .save()
