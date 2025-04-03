@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, sum, max, to_timestamp, lit
+from pyspark.sql.functions import col, sum, when, to_date, weekofyear, month
 
 aws_access_key_id = 'test'
 aws_secret_access_key = 'test'
@@ -62,28 +62,49 @@ df_union = df_csv.union(df_kafka)
 
 df_joined = df_union.join(df_db, stores, "inner")
 
-df_grouped = df_joined.groupBy(col(stores)).agg(sum(col(revenue)).alias("total_revenue"))
-max_revenue = df_grouped.agg(max(col("total_revenue"))).collect()[0][0]
-df_stores_max = df_grouped.filter(col("total_revenue") == max_revenue)
-df_top_stores = df_stores_max.join(df_db, stores, "inner")
 
-df_quantity_date= df_union.groupBy(col(date)).agg(sum(col(quantity)).alias('total_sold'))
 
-df_quantiy_date_exact= df_quantity_date.filter(col(date) == to_timestamp(lit('2025-03-25'), 'yyyy-MM-dd')) 
+df_date = df_joined.withColumn('date_only', to_date(col(date)))
+df_date = df_date.groupBy("date_only").agg(
+    sum(revenue).alias("total_revenue"),
+    sum(quantity).alias("total_quantity_sold")
+)
 
-df_products_group = df_union.groupBy(col(products)).agg(sum(col(quantity)).alias('total_sold'))
-max_sold = df_products_group.agg(max(col("total_sold"))).collect()[0][0]
-df_products_max = df_products_group.filter(col("total_sold") == max_sold)
-df_top_product = df_products_max.join(df_union, products, "inner")
+df_week = df_joined.withColumn('week_of_year', weekofyear(col(date)))
+df_week = df_week.groupBy("week_of_year").agg(
+    sum(revenue).alias("total_revenue"),
+    sum(quantity).alias("total_quantity_sold")
+)
+df_month = df_joined.withColumn('month', month(col(date)))
+df_month = df_month.groupBy("month").agg(
+    sum(revenue).alias("total_revenue"),
+    sum(quantity).alias("total_quantity_sold")
+)
+df_season= df_joined.withColumn(
+                    "season",
+                    when((month(date) >= 3) & (month(date) <= 5), "Primavera")
+                    .when((month(date) >= 6) & (month(date) <= 8), "Verano")
+                    .when((month(date) >= 9) & (month(date) <= 11), "Otoño")
+                    .otherwise("Invierno")
+                )
 
-print('\n Tienda con mas beneficios de venta: \n')
+df_season = df_season.groupBy("season").agg(
+    sum(revenue).alias("total_revenue"),
+    sum(quantity).alias("total_quantity_sold")
+)
 
-df_top_stores.show()
+print('\n Agrupacion por dias: \n')
+
+df_date.show()
+
+print('Agrupacion por semanas: \n')
+
+df_week.show()
+
+print('Agrupacion por meses: \n')
+
+df_month.show()
 
 print('Ventas en fecha exacta: \n')
 
-df_quantiy_date_exact.show()
-
-print('Producto mas vendido: \n')
-
-df_top_product.show()
+df_season.show()

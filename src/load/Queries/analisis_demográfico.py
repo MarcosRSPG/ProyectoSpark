@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, sum, max, to_timestamp, lit
+from pyspark.sql.functions import col, sum, when, split, expr, desc
 
 aws_access_key_id = 'test'
 aws_secret_access_key = 'test'
@@ -62,28 +62,34 @@ df_union = df_csv.union(df_kafka)
 
 df_joined = df_union.join(df_db, stores, "inner")
 
-df_grouped = df_joined.groupBy(col(stores)).agg(sum(col(revenue)).alias("total_revenue"))
-max_revenue = df_grouped.agg(max(col("total_revenue"))).collect()[0][0]
-df_stores_max = df_grouped.filter(col("total_revenue") == max_revenue)
-df_top_stores = df_stores_max.join(df_db, stores, "inner")
+# Extraer latitud y longitud correctamente
+df_demographics = df_joined.withColumn("latitude", split(df_joined[demographics], ",")[0].substr(2, 1000)) \
+                            .withColumn("longitude", split(df_joined[demographics], ",")[1].substr(0, 1000))
 
-df_quantity_date= df_union.groupBy(col(date)).agg(sum(col(quantity)).alias('total_sold'))
+df_demographics = df_demographics.withColumn("longitude", expr("substring(longitude, 1, length(longitude) - 1)"))
 
-df_quantiy_date_exact= df_quantity_date.filter(col(date) == to_timestamp(lit('2025-03-25'), 'yyyy-MM-dd')) 
+df_continents = df_demographics.withColumn(
+    "continent",
+    when((col("latitude") >= 7) & (col("latitude") <= 83) & (col("longitude") >= -170) & (col("longitude") <= -50), "North America")
+    .when((col("latitude") >= -55) & (col("latitude") <= 15) & (col("longitude") >= -90) & (col("longitude") <= -30), "South America")
+    .when((col("latitude") >= 35) & (col("latitude") <= 71) & (col("longitude") >= -25) & (col("longitude") <= 60), "Europe")
+    .when((col("latitude") >= -35) & (col("latitude") <= 37) & (col("longitude") >= -20) & (col("longitude") <= 55), "Africa")
+    .when((col("latitude") >= 0) & (col("latitude") <= 77) & (col("longitude") >= 25) & (col("longitude") <= 180), "Asia")
+    .when((col("latitude") >= -50) & (col("latitude") <= 10) & (col("longitude") >= 110) & (col("longitude") <= 180), "Oceania")
+    .otherwise("Unknown")
+)
 
-df_products_group = df_union.groupBy(col(products)).agg(sum(col(quantity)).alias('total_sold'))
-max_sold = df_products_group.agg(max(col("total_sold"))).collect()[0][0]
-df_products_max = df_products_group.filter(col("total_sold") == max_sold)
-df_top_product = df_products_max.join(df_union, products, "inner")
+df_filtered = df_continents.groupBy("continent").agg(sum(revenue).alias("total_revenue"))
 
-print('\n Tienda con mas beneficios de venta: \n')
+df_products = df_continents.groupBy("continent", products).agg(sum(quantity).alias("total_sales"))
+df_sorted = df_products.orderBy("continent", desc("total_sales"))
 
-df_top_stores.show()
+df_most_sold = df_sorted.dropDuplicates(["continent"])
 
-print('Ventas en fecha exacta: \n')
+print('Ventas segun el continente: \n')
 
-df_quantiy_date_exact.show()
+df_filtered.show()
 
-print('Producto mas vendido: \n')
+print('\n Producto preferido por continente: \n')
 
-df_top_product.show()
+df_most_sold.show()
