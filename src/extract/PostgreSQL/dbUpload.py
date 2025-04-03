@@ -5,9 +5,9 @@ aws_secret_access_key='test'
 
 def read_from_postgres():
     spark = SparkSession.builder \
-            .appName("ReadFromPosgre") \
-            .config("spark.driver.extraClassPath", "/opt/spark-apps/transform/CSV/postgresql-42.7.3.jar:/opt/spark/jars/*") \
-            .config("spark.executor.extraClassPath", "/opt/spark-apps/transform/CSV/postgresql-42.7.3.jar:/opt/spark/jars/*") \
+            .appName("UPLOAD DE POSGRE A S3") \
+            .config("spark.driver.extraClassPath", "/opt/spark-apps/drivers/postgresql-42.7.3.jar:/opt/spark/jars/*") \
+            .config("spark.executor.extraClassPath", "/opt/spark-apps/drivers/postgresql-42.7.3.jar:/opt/spark/jars/*") \
             .config("spark.hadoop.fs.s3a.endpoint", "http://localstack:4566") \
             .config("spark.hadoop.fs.s3a.access.key", "test") \
             .config("spark.hadoop.fs.s3a.secret.key", "test") \

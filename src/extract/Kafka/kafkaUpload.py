@@ -32,7 +32,7 @@ def process_batch(batch_df, batch_id):
 
 try:
     spark = SparkSession.builder \
-        .appName("Streaming from Kafka") \
+        .appName("UPLOAD DE KAFKA A S3") \
         .config("spark.streaming.stopGracefullyOnShutdown", True) \
         .config("spark.sql.shuffle.partitions", 4) \
         .config("spark.hadoop.fs.s3a.endpoint", "http://localstack:4566") \

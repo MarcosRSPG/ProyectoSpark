@@ -7,7 +7,7 @@ aws_secret_access_key = 'test'
 
 
 spark = SparkSession.builder \
-    .appName("csvTransformData") \
+    .appName("COMPROBAR CSV") \
     .config("spark.hadoop.fs.s3a.endpoint", "http://localstack:4566") \
     .config("spark.hadoop.fs.s3a.access.key", aws_access_key_id) \
     .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key) \

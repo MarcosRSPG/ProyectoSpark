@@ -5,7 +5,7 @@ aws_secret_access_key = 'test'
 
 try:
     spark = SparkSession.builder \
-        .appName("Streaming from Kafka") \
+        .appName("COMPRESOR DE KAFKA") \
         .config("spark.streaming.stopGracefullyOnShutdown", True) \
         .config("spark.sql.shuffle.partitions", 4) \
         .config("spark.hadoop.fs.s3a.endpoint", "http://localstack:4566") \

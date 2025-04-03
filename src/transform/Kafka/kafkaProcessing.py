@@ -13,9 +13,9 @@ tratado= 'Tratado'
 fecha_insercion= 'Fecha Insercion'
 
 spark = SparkSession.builder \
-    .appName("csvTransformData") \
-    .config("spark.driver.extraClassPath", "/opt/spark-apps/transform/CSV/postgresql-42.7.3.jar:/opt/spark/jars/*") \
-    .config("spark.executor.extraClassPath", "/opt/spark-apps/transform/CSV/postgresql-42.7.3.jar:/opt/spark/jars/*") \
+    .appName("PROCESAMIENTO DE KAFKA") \
+    .config("spark.driver.extraClassPath", "/opt/spark-apps/drivers/postgresql-42.7.3.jar:/opt/spark/jars/*") \
+    .config("spark.executor.extraClassPath", "/opt/spark-apps/drivers/postgresql-42.7.3.jar:/opt/spark/jars/*") \
     .config("spark.hadoop.fs.s3a.endpoint", "http://localstack:4566") \
     .config("spark.hadoop.fs.s3a.access.key", aws_access_key_id) \
     .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key) \
