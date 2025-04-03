@@ -51,6 +51,27 @@ df = df.withColumn(fecha_insercion, current_timestamp())
 
 df = df.dropDuplicates()
 
+# Calcular Q1 y Q3 para el rango intercuartil (IQR) sin approxQuantile
+q1_quantity, q3_quantity = df.selectExpr(
+    f"percentile_approx({quantity}, 0.25)",
+    f"percentile_approx({quantity}, 0.75)").first()
+
+iqr_quantity = q3_quantity - q1_quantity
+lower_bound_quantity = q1_quantity - 1.5 * iqr_quantity
+upper_bound_quantity = q3_quantity + 1.5 * iqr_quantity
+
+q1_revenue, q3_revenue = df.selectExpr(
+    f"percentile_approx({revenue}, 0.25)",
+    f"percentile_approx({revenue}, 0.75)").first()
+
+iqr_revenue = q3_revenue - q1_revenue
+lower_bound_revenue = q1_revenue - 1.5 * iqr_revenue
+upper_bound_revenue = q3_revenue + 1.5 * iqr_revenue
+
+# Filtrar valores atípicos
+df = df.filter((col(quantity) >= lower_bound_quantity) & (col(quantity) <= upper_bound_quantity))
+df = df.filter((col(revenue) >= lower_bound_revenue) & (col(revenue) <= upper_bound_revenue))
+
 df = df.withColumn("timestamp", (col("timestamp") / 1000).cast("timestamp")) \
        .withColumn(stores, col(stores).cast("int")) \
        .withColumn(products, col(products).cast("string")) \
