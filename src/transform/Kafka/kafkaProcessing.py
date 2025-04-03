@@ -24,7 +24,7 @@ spark = SparkSession.builder \
     .master("spark://spark-master:7077") \
     .getOrCreate()
 
-bucket_path = "s3a://data-lake/sales_compacted/part-00000-2799b621-21df-4e5d-8a51-9e8827b2ff40-c000.json"
+bucket_path = "s3a://data-lake/sales_compacted/*.json"
 df = spark.read.json(bucket_path)
 
 invalid_values = ["", "None", "STORE_ERROR", "PRODUCT_ERROR", "QUANTITY_ERROR", "REVENUE_ERROR", "TIMESTAMP_ERROR"]
