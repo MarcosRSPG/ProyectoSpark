@@ -13,13 +13,13 @@ fecha_insercion= 'Fecha Insercion'
 
 spark = SparkSession.builder \
     .appName("csvTransformData") \
+    .config("spark.driver.extraClassPath", "/opt/spark-apps/transform/CSV/postgresql-42.7.3.jar:/opt/spark/jars/*") \
+    .config("spark.executor.extraClassPath", "/opt/spark-apps/transform/CSV/postgresql-42.7.3.jar:/opt/spark/jars/*") \
     .config("spark.hadoop.fs.s3a.endpoint", "http://localstack:4566") \
     .config("spark.hadoop.fs.s3a.access.key", aws_access_key_id) \
     .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key) \
-    .config("spark.sql.shuffle.partitions", "4") \
-    .config("spark.jars.packages","org.apache.hadoop:hadoop-aws:3.3.4") \
     .config("spark.hadoop.fs.s3a.path.style.access", "true") \
-    .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+    .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false") \
     .master("spark://spark-master:7077") \
     .getOrCreate()
 

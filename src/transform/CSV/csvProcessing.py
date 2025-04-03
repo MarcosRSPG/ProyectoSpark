@@ -17,8 +17,8 @@ spark = SparkSession.builder \
     .config("spark.driver.extraClassPath", "/opt/spark-apps/transform/CSV/postgresql-42.7.3.jar:/opt/spark/jars/*") \
     .config("spark.executor.extraClassPath", "/opt/spark-apps/transform/CSV/postgresql-42.7.3.jar:/opt/spark/jars/*") \
     .config("spark.hadoop.fs.s3a.endpoint", "http://localstack:4566") \
-    .config("spark.hadoop.fs.s3a.access.key", "test") \
-    .config("spark.hadoop.fs.s3a.secret.key", "test") \
+    .config("spark.hadoop.fs.s3a.access.key", aws_access_key_id) \
+    .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key) \
     .config("spark.hadoop.fs.s3a.path.style.access", "true") \
     .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false") \
     .master("spark://spark-master:7077") \

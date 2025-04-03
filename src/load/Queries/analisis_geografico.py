@@ -17,24 +17,31 @@ fecha_insercion= 'fecha_Insercion'
 
 spark = SparkSession.builder \
     .appName("csvTransformData") \
+    .config("spark.driver.extraClassPath", "/opt/spark-apps/transform/CSV/postgresql-42.7.3.jar:/opt/spark/jars/*") \
+    .config("spark.executor.extraClassPath", "/opt/spark-apps/transform/CSV/postgresql-42.7.3.jar:/opt/spark/jars/*") \
     .config("spark.hadoop.fs.s3a.endpoint", "http://localstack:4566") \
     .config("spark.hadoop.fs.s3a.access.key", aws_access_key_id) \
     .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key) \
-    .config("spark.sql.shuffle.partitions", "4") \
-    .config("spark.jars.packages","org.apache.hadoop:hadoop-aws:3.3.4") \
     .config("spark.hadoop.fs.s3a.path.style.access", "true") \
-    .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+    .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false") \
     .master("spark://spark-master:7077") \
     .getOrCreate()
 
-bucket_path_csv = "s3a://data-lake/csv_processed/*.csv"
-df_csv = spark.read.option('header', 'true').option("delimiter", ",").csv(bucket_path_csv)
+jdbc_url = "jdbc:postgresql://postgres-db:5432/processed_data"
+connection_properties = {
+    "user": "postgres",
+    "password": "casa1234",
+    "driver": "org.postgresql.Driver"
+}
 
-bucket_path_db = "s3a://data-lake/db_processed/*.csv"
-df_db = spark.read.option('header', 'true').option("delimiter", ",").csv(bucket_path_db)
+table_csv = "csv_data"
+df_csv = spark.read.jdbc(url=jdbc_url, table=table_csv, properties=connection_properties)
 
-bucket_path_kafka= "s3a://data-lake/kafka_processed/*.csv"
-df_kafka = spark.read.option('header', 'true').option("delimiter", ",").csv(bucket_path_kafka)
+table_csv = "postgre_data"
+df_db = spark.read.jdbc(url=jdbc_url, table=table_csv, properties=connection_properties)
+
+table_csv = "kafka_data"
+df_kafka = spark.read.jdbc(url=jdbc_url, table=table_csv, properties=connection_properties)
 
 # Renombrar columnas en df_csv y df_kafka para que coincidan
 df_csv = df_csv.withColumnRenamed("date", date) \
